@@ -8,6 +8,7 @@ class KubernetesPerformanceBackApplicationTests {
 
 	@Test
 	void contextLoads() {
+
 	}
 
 }

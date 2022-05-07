@@ -62,6 +62,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>kubernetes-performance-back</finalName>
 	</build>
 
 </project>
