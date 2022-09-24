@@ -14,7 +14,7 @@
 	<name>kubernetes-performance-back</name>
 	<description>Kubernetes performance analysis</description>
 	<properties>
-		<java.version>11</java.version>
+		<java.version>8</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
