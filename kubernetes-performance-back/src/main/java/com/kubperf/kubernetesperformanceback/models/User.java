@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 public class User {
-    private String userId;
-    private String userSecret;
+    private String id;
+    private String secret;
+    private String nick;
+    private String token;
 }
