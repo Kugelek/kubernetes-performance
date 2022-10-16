@@ -18,20 +18,21 @@ public class SpotifyService {
     @Autowired
     public User user;
 
+    private final static String API_PREFIX = "https://api.spotify.com/v1/";
+    private final static String USER = "adamzebr";
+    private final static String ARTIST = "5LHRHt1k9lMyONurDHEdrp";
+    private final static String ALBUM = "6hHIX3lfGKnZ2ji41YZMVV";
+
     private final RestTemplate restTemplate;
 
     public SpotifyService(RestTemplateBuilder restTemplateBuilder) {
         this.restTemplate = restTemplateBuilder.build();
     }
 
-
-
-    public JSONObject fetchSongs(String token) {
-        String url = "https://api.spotify.com/v1/users/adamzebr/playlists";
-
+    public JSONObject makeRequest(String url) {
         //create headers
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer "+token);
+        headers.setBearerAuth(user.getToken());
 
         String urlTemplate = UriComponentsBuilder
                 .fromHttpUrl(url)
@@ -42,7 +43,22 @@ public class SpotifyService {
 
         System.out.println(response.getBody());
         return response.getBody();
+    }
 
+
+    public JSONObject fetchPlaylists() {
+        String url = API_PREFIX + "users/" + USER + "/playlists";
+        return makeRequest(url);
+    }
+
+    public JSONObject fetchArtistAlbums() {
+        String url = API_PREFIX + "artists/" + ARTIST + "/albums";
+        return makeRequest(url);
+    }
+
+    public JSONObject fetchAlbumTracks() {
+        String url = API_PREFIX + "albums/" + ALBUM + "/tracks";
+        return makeRequest(url);
     }
 
 
