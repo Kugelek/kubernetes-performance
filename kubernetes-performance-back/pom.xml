@@ -87,6 +87,18 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
+				<version>9.3.0</version>
+				<configuration>
+					<user>sa</user>
+					<password></password>
+					<schemas>
+						<schema>testdb</schema>
+					</schemas>
+				</configuration>
+			</plugin>
 		</plugins>
 		<finalName>kubernetes-performance-back</finalName>
 	</build>
