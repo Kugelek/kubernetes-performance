@@ -1,0 +1,89 @@
+{
+	"info": {
+		"_postman_id": "ce39e5cb-f9c0-4b9a-9a44-e7a5a61e5ac0",
+		"name": "kubernetes-performance-tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "10350346"
+	},
+	"item": [
+		{
+			"name": "fetch-playlists-test",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if(pm.info.iteration == 0){\r",
+							"    pm.globals.set(\"prev_time\", 0);\r",
+							"}\r",
+							"\r",
+							"const previousTestExecTime = pm.globals.get(\"prev_time\");\r",
+							"\r",
+							"const totalTestExecTime = previousTestExecTime + pm.response.responseTime;\r",
+							"pm.globals.set(\"prev_time\", totalTestExecTime);\r",
+							"\r",
+							"console.log(\"Zapytanie nr \" + pm.info.iteration);\r",
+							"console.log(\"Suma czasu wszystkich zapytań: \" + totalTestExecTime);\r",
+							"\r",
+							"\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://51.104.183.87:8080/playlists",
+					"protocol": "http",
+					"host": [
+						"51",
+						"104",
+						"183",
+						"87"
+					],
+					"port": "8080",
+					"path": [
+						"playlists"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "token Copy",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://51.104.183.87:8080/authorizationUser",
+					"protocol": "http",
+					"host": [
+						"51",
+						"104",
+						"183",
+						"87"
+					],
+					"port": "8080",
+					"path": [
+						"authorizationUser"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
