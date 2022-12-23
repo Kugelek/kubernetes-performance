@@ -18,6 +18,8 @@ public class SpotifyService {
     @Autowired
     public User user;
 
+    public JSONObject tempPlaylists;
+
     private final static String API_PREFIX = "https://api.spotify.com/v1/";
     private final static String USER = "adamzebr";
     private final static String ARTIST = "5LHRHt1k9lMyONurDHEdrp";
@@ -61,11 +63,24 @@ public class SpotifyService {
         return makeRequest(url);
     }
 
+    public JSONObject fetchOrSavePlaylists() {
+        if(tempPlaylists != null){
+            simulateComplexComputation();
+            System.out.println("@@@@@@@@@@@");
+            return tempPlaylists;
+        }else{
+            String url = API_PREFIX + "users/" + USER + "/playlists";
+            this.tempPlaylists = makeRequest(url);
+            return this.tempPlaylists;
+        }
+    }
 
-//
-//    public JSONObject getSongs(String token) {
-//
-//        return songDao.findAll();
-//    }
+    public void simulateComplexComputation(){
+        try{
+            Thread.sleep(2000);
+        }catch(InterruptedException ie){
+
+        }
+    }
 
 }

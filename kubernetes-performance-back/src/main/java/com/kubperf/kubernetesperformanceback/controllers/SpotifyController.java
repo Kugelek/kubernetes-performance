@@ -27,4 +27,9 @@ public class SpotifyController {
                 return spotifyService.fetchAlbumTracks();
         }
 
+        @GetMapping("/fetchPlaylists")
+        public JSONObject fetchOrSavePlaylists() {
+                return spotifyService.fetchOrSavePlaylists();
+        }
+
 }
