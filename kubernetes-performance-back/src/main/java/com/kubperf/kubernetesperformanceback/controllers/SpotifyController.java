@@ -32,4 +32,9 @@ public class SpotifyController {
                 return spotifyService.fetchOrSavePlaylists();
         }
 
+        @GetMapping("/fetchPlaylistsNoDelay")
+        public JSONObject fetchOrSavePlaylistsNoDelay() {
+                return spotifyService.fetchOrSavePlaylistsNoDelay();
+        }
+
 }

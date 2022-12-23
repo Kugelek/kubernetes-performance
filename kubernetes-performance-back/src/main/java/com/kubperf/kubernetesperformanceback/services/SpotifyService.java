@@ -74,6 +74,18 @@ public class SpotifyService {
             return this.tempPlaylists;
         }
     }
+    public JSONObject fetchOrSavePlaylistsNoDelay() {
+        if(tempPlaylists != null){
+            return tempPlaylists;
+        }else{
+            String url = API_PREFIX + "users/" + USER + "/playlists";
+            this.tempPlaylists = makeRequest(url);
+            return this.tempPlaylists;
+        }
+    }
+
+
+
 
     public void simulateComplexComputation(){
         try{
