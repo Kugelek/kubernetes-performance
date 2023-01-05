@@ -1,0 +1,91 @@
+{
+	"info": {
+		"_postman_id": "895f5ca2-22b6-4f34-990a-a9176a60a2a3",
+		"name": "Magisterka Copy",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "10043420"
+	},
+	"item": [
+		{
+			"name": "get playlists v2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const authorizePods = () => {\r",
+							"    return new Promise((resolve, reject) => {\r",
+							"        pm.sendRequest(\"http://127.0.0.1:8080/authorizationUser\", (err, res) => {\r",
+							"            if (err) {\r",
+							"                reject(err);\r",
+							"            } else {\r",
+							"                // check for non-200 responses\r",
+							"                const notErrorCode = /^2[0-9]{2}$/.exec(res.code);\r",
+							"                if (notErrorCode) {\r",
+							"                    resolve(res);\r",
+							"                } else {\r",
+							"                    reject({code: res.code, body: res.json()});\r",
+							"                }\r",
+							"            }\r",
+							"        });\r",
+							"    });\r",
+							"}\r",
+							"\r",
+							"const promiseSendRequest = (requestSchema) => {\r",
+							"    return new Promise((resolve, reject) => {\r",
+							"        pm.sendRequest(\"http://localhost:8080/fetchPlaylistsNoDelay\", (err, res) => {\r",
+							"            if (err) {\r",
+							"                reject(err);\r",
+							"            } else {\r",
+							"                // check for non-200 responses\r",
+							"                const notErrorCode = /^2[0-9]{2}$/.exec(res.code);\r",
+							"                if (notErrorCode) {\r",
+							"                    resolve(res);\r",
+							"                } else {\r",
+							"                    reject({code: res.code, body: res.json()});\r",
+							"                }\r",
+							"            }\r",
+							"        }); \r",
+							"    }); \r",
+							"};\r",
+							"const auth = (num) => Array.from({length: num}, (v, k) => authorizePods()); \r",
+							"const generateArrOf = (num) => Array.from({length: num}, (v, k) => promiseSendRequest()); \r",
+							"\r",
+							"\r",
+							"Promise.all(auth(1)).then((res) => {\r",
+							"    console.log(\"Authorized\");\r",
+							"});\r",
+							"\r",
+							"let startTime = new Date().getTime()\r",
+							"console.log('start');\r",
+							"\r",
+							"// Promise.all(generateArrOf(100)).then((res) => {\r",
+							"//   console.log(\"CZAS: \" + (new Date().getTime() - startTime));\r",
+							"// });"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8080/fetchPlaylistsNoDelay",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"fetchPlaylistsNoDelay"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
