@@ -67,10 +67,6 @@
 			<artifactId>jsoup</artifactId>
 			<version>1.13.1</version>
 		</dependency>
-		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-core</artifactId>
-		</dependency>
 	</dependencies>
 
 	<build>
@@ -85,18 +81,6 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.flywaydb</groupId>
-				<artifactId>flyway-maven-plugin</artifactId>
-				<version>9.3.0</version>
-				<configuration>
-					<user>sa</user>
-					<password></password>
-					<schemas>
-						<schema>testdb</schema>
-					</schemas>
 				</configuration>
 			</plugin>
 		</plugins>
