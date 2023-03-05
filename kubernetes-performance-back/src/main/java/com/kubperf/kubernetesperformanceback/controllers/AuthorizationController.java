@@ -9,16 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AuthorizationController {
 
-
     @Autowired
     public AuthoriaztionService authoriaztionService;
-
-
-    @GetMapping("requestUserAuthorization")
-    public JSONObject requestUserAuthorization() {
-        return authoriaztionService.requestUserAuthorization();
-    }
-
 
     @GetMapping("/authorizationUser")
     public JSONObject authorizationUser() {

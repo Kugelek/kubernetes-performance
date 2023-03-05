@@ -2,7 +2,6 @@ package com.kubperf.kubernetesperformanceback;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
 ////todo: wyrzucic exclude po ogarnieciu bazki
 //@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class })

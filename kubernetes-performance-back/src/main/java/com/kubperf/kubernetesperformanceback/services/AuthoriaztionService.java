@@ -5,15 +5,13 @@ import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
-
 
 @Service
 public class AuthoriaztionService {
@@ -29,29 +27,6 @@ public class AuthoriaztionService {
 
     public AuthoriaztionService(RestTemplateBuilder restTemplateBuilder) {
         this.restTemplate = restTemplateBuilder.build();
-    }
-
-
-    public JSONObject requestUserAuthorization() {
-        String url = API_PREFIX + "authorize";
-
-        String urlTemplate = UriComponentsBuilder.fromHttpUrl(url)
-                .queryParam("client_id", "32f3fa6fa3f54efcae8193f8d7da82c9")
-                .queryParam("response_type", "code")
-                .queryParam("redirect_uri","http://127.0.0.1:8080/login").build().toUriString();
-
-        System.out.println("urlTemplate = " + urlTemplate);
-
-        //create request
-        HttpEntity<?> request = new HttpEntity<Object>(null, null);
-
-
-        // make a request
-        ResponseEntity<JSONObject> response = restTemplate.exchange(urlTemplate, HttpMethod.GET, request, JSONObject.class);
-
-        return response.getBody();
-
-
     }
 
     public JSONObject authorization() {
@@ -75,7 +50,4 @@ public class AuthoriaztionService {
 
         return response.getBody();
     }
-
-
-
 }

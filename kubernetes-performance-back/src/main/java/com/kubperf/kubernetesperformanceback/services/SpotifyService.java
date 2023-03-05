@@ -47,7 +47,6 @@ public class SpotifyService {
         return response.getBody();
     }
 
-
     public JSONObject fetchPlaylists() {
         String url = API_PREFIX + "users/" + USER + "/playlists";
         return makeRequest(url);
@@ -64,35 +63,31 @@ public class SpotifyService {
     }
 
     public JSONObject fetchOrSavePlaylists() {
-        if(tempPlaylists != null){
+        if (tempPlaylists != null) {
             simulateComplexComputation();
             System.out.println("@@@@@@@@@@@");
             return tempPlaylists;
-        }else{
+        } else {
             String url = API_PREFIX + "users/" + USER + "/playlists";
             this.tempPlaylists = makeRequest(url);
             return this.tempPlaylists;
         }
     }
     public JSONObject fetchOrSavePlaylistsNoDelay() {
-        if(tempPlaylists != null){
+        if (tempPlaylists != null) {
             return tempPlaylists;
-        }else{
+        } else {
             String url = API_PREFIX + "users/" + USER + "/playlists";
             this.tempPlaylists = makeRequest(url);
             return this.tempPlaylists;
         }
     }
 
-
-
-
     public void simulateComplexComputation(){
-        try{
+        try {
             Thread.sleep(2000);
-        }catch(InterruptedException ie){
+        } catch(InterruptedException ie){
 
         }
     }
-
 }
