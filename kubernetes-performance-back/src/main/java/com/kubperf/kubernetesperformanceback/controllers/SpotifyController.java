@@ -43,10 +43,12 @@ public class SpotifyController {
                 logger.warn("Playlist fetched");
                 return spotifyService.fetchOrSavePlaylists();
         }
-
+        @GetMapping("/fetchPlaylistsInvalid")
+        public JSONObject fetchOrSavePlaylistsInvalid() {
+                return spotifyService.fetchPlaylistsInvalid();
+        }
         @GetMapping("/fetchPlaylistsNoDelay")
         public JSONObject fetchOrSavePlaylistsNoDelay() {
                 return spotifyService.fetchOrSavePlaylistsNoDelay();
         }
-
 }

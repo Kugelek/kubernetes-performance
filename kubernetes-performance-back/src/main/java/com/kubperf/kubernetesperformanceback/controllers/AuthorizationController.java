@@ -1,6 +1,6 @@
 package com.kubperf.kubernetesperformanceback.controllers;
 
-import com.kubperf.kubernetesperformanceback.services.AuthoriaztionService;
+import com.kubperf.kubernetesperformanceback.services.AuthorizationService;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,17 +11,17 @@ public class AuthorizationController {
 
 
     @Autowired
-    public AuthoriaztionService authoriaztionService;
+    public AuthorizationService authorizationService;
 
 
     @GetMapping("requestUserAuthorization")
     public JSONObject requestUserAuthorization() {
-        return authoriaztionService.requestUserAuthorization();
+        return authorizationService.requestUserAuthorization();
     }
 
 
     @GetMapping("/authorizationUser")
     public JSONObject authorizationUser() {
-        return authoriaztionService.authorization();
+        return authorizationService.authorization();
     }
 }

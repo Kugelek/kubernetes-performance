@@ -16,7 +16,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 
 @Service
-public class AuthoriaztionService {
+public class AuthorizationService {
 
     @Autowired
     public User user;
@@ -27,7 +27,7 @@ public class AuthoriaztionService {
     private final RestTemplate restTemplate;
 
 
-    public AuthoriaztionService(RestTemplateBuilder restTemplateBuilder) {
+    public AuthorizationService(RestTemplateBuilder restTemplateBuilder) {
         this.restTemplate = restTemplateBuilder.build();
     }
 
