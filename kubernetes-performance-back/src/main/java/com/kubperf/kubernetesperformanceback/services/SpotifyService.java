@@ -3,6 +3,7 @@ package com.kubperf.kubernetesperformanceback.services;
 import com.kubperf.kubernetesperformanceback.models.User;
 import com.sun.management.OperatingSystemMXBean;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.Metrics;
 import net.minidev.json.JSONObject;
 import org.slf4j.Logger;
@@ -20,9 +21,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.annotation.PostConstruct;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
-import java.util.ArrayList;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.Collections;
-import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 /*
@@ -41,26 +44,29 @@ public class SpotifyService {
     @Autowired
     public User user;
 
-    public JSONObject tempPlaylists;
+    JSONObject tempPlaylists;
 
-    private final static String API_PREFIX = "https://api.spotify.com/v1/";
-    private final static String USER = "21h3z55pecogcrafiq3bvnady";
-    private final static String ARTIST = "5LHRHt1k9lMyONurDHEdrp";
-    private final static String ALBUM = "6hHIX3lfGKnZ2ji41YZMVV";
+    private static final String API_PREFIX = "https://api.spotify.com/v1/";
+    private static final String USER_ID = "21h3z55pecogcrafiq3bvnady";
+    private static final String ARTIST = "5LHRHt1k9lMyONurDHEdrp";
+    private static final String ALBUM = "6hHIX3lfGKnZ2ji41YZMVV";
     private final Counter playlistsSuccessfulCounter = Metrics.counter("playlists_requests_total","result", "success");
-    private final Counter playlistsFailedCounter = Metrics.counter("playlists_requests_total","result", "error");
+    private final Counter playlistsErrorCounter = Metrics.counter("playlists_requests_total","result", "error");
     private final AtomicReference<Double> playlistErrorRate = new AtomicReference<>(0.0);
-    private final List<Long> requestTimesList = new ArrayList<>();
     private final AtomicReference<Double> usage = new AtomicReference<>(0.0);
+    DistributionSummary responseSizesHistogram = DistributionSummary.builder("response.sizes")
+            .description("Histogram for response sizes")
+            .baseUnit("bytes")
+            .publishPercentileHistogram()
+            .publishPercentiles(0.1, 0.25, 0.5, 0.75, 0.9, 0.95)
+            .distributionStatisticExpiry(Duration.ofHours(6))
+            .register(Metrics.globalRegistry);
+
+    DistributionSummary responseSizesSummary = Metrics.globalRegistry.summary("response.size.summary");
 
     @PostConstruct
-    public void setGauge() {
+    public void init() {
         Metrics.globalRegistry.gauge("cpu_usage_gauge", Collections.emptyList(), usage, AtomicReference::get);
-        Metrics.globalRegistry.gauge("albums_request_avg_time",
-                Collections.emptyList(),
-                requestTimesList,
-                x -> x.stream().mapToDouble(Long::doubleValue).average().orElse(0.0)
-        );
         Metrics.globalRegistry.gauge("playlists_error_rate", Collections.emptyList(), playlistErrorRate, AtomicReference::get);
     }
     private final RestTemplate restTemplate;
@@ -71,9 +77,8 @@ public class SpotifyService {
 
     public JSONObject makeRequest(String url) {
 
-        ResponseEntity<JSONObject> response;
-        long startTime = System.nanoTime();;
-        try {
+        ResponseEntity<JSONObject> response = null;
+        long startTime = System.nanoTime();
             //create headers
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(user.getToken());
@@ -81,12 +86,13 @@ public class SpotifyService {
             String urlTemplate = UriComponentsBuilder
                     .fromHttpUrl(url)
                     .build().toUriString();
+        try {
             HttpEntity<?> request = new HttpEntity<Object>(null, headers);
             response = restTemplate.exchange(urlTemplate, HttpMethod.GET, request, JSONObject.class);
-            long responseTime = System.nanoTime() - startTime;
-            if(url.contains("albums")) {
-                requestTimesList.add(responseTime);
-            }
+            int responseSize = Objects.requireNonNull(response.getBody()).toString().getBytes().length;
+            responseSizesHistogram.record(responseSize);
+            responseSizesSummary.record(responseSize);
+
 
             if(isPlaylistRequest(url)) {
                 playlistsSuccessfulCounter.increment();
@@ -97,12 +103,11 @@ public class SpotifyService {
             return response.getBody();
 
         } catch (Exception e) {
+            responseSizesHistogram.record(e.toString().getBytes().length);
+            responseSizesSummary.record(e.toString().getBytes().length);
             if(isPlaylistRequest(url))
-                playlistsFailedCounter.increment();
-            if(url.contains("albums")) {
-                long responseTime = System.nanoTime() - startTime;
-                requestTimesList.add(responseTime / 1000000);
-            }
+                playlistsErrorCounter.increment();
+
             updateGauge();
             throw e;
         }
@@ -110,7 +115,7 @@ public class SpotifyService {
     public JSONObject makeUnauthorizedRequest(String url) {
 
         //create headers
-        ResponseEntity<JSONObject> response;
+        ResponseEntity<JSONObject> response = null;
         try {
             HttpHeaders headers = new HttpHeaders();
             String urlTemplate = UriComponentsBuilder
@@ -120,6 +125,9 @@ public class SpotifyService {
             HttpEntity<?> request = new HttpEntity<Object>(null, headers);
             response = restTemplate.exchange(urlTemplate, HttpMethod.GET, request, JSONObject.class);
 
+            responseSizesHistogram.record(response.getBody().toString().getBytes().length);
+            responseSizesSummary.record(response.getBody().toString().getBytes().length);
+
             if(isPlaylistRequest(url)) {
                 playlistsSuccessfulCounter.increment();
                 updateGauge();
@@ -127,8 +135,10 @@ public class SpotifyService {
             return response.getBody();
 
         } catch (Exception e) {
+            responseSizesHistogram.record(e.toString().getBytes().length);
+            responseSizesSummary.record(e.toString().getBytes().length);
             if(isPlaylistRequest(url)) {
-                playlistsFailedCounter.increment();
+                playlistsErrorCounter.increment();
                 updateGauge();
             }
             throw e;
@@ -138,12 +148,12 @@ public class SpotifyService {
 
 
     public JSONObject fetchPlaylists() {
-        String url = API_PREFIX + "users/" + USER + "/playlists";
+        String url = API_PREFIX + "users/" + USER_ID + "/playlists";
         logger.info("request fetchPlaylists (GET) started");
         return makeRequest(url);
     }
     public JSONObject fetchPlaylistsInvalid() {
-        String url = API_PREFIX + "users/" + USER + "/playlists";
+        String url = API_PREFIX + "users/" + USER_ID + "/playlists";
         logger.info("request fetchPlaylistsInvalid (GET) started");
         return makeUnauthorizedRequest(url);
     }
@@ -164,19 +174,22 @@ public class SpotifyService {
         if(tempPlaylists != null){
             simulateComplexComputation();
             System.out.println("@@@@@@@@@@@");
+            responseSizesHistogram.record(tempPlaylists.toString().getBytes().length / 1000.0);
             return tempPlaylists;
         }else{
-            String url = API_PREFIX + "users/" + USER + "/playlists";
+            String url = API_PREFIX + "users/" + USER_ID + "/playlists";
             this.tempPlaylists = makeRequest(url);
             return this.tempPlaylists;
         }
     }
     public JSONObject fetchOrSavePlaylistsNoDelay() {
         if(tempPlaylists != null){
+            responseSizesHistogram.record(tempPlaylists.toString().getBytes().length / 1000.0);
             return tempPlaylists;
         }else{
-            String url = API_PREFIX + "users/" + USER + "/playlists";
+            String url = API_PREFIX + "users/" + USER_ID + "/playlists";
             this.tempPlaylists = makeRequest(url);
+            responseSizesHistogram.record(tempPlaylists.toString().getBytes().length / 1000.0);
             return this.tempPlaylists;
         }
     }
@@ -204,7 +217,7 @@ public class SpotifyService {
         logger.info(String.format("Process CPU Usage: %d", operatingSystemMXBean.getProcessCpuTime()));
         usage.set((cpuUsage.doubleValue() / operatingSystemMXBean.getProcessCpuTime()) * 100);
         logger.info(String.format("cpu_usage_gauge = %f",Metrics.globalRegistry.get("cpu_usage_gauge").gauge().value()));
-        playlistErrorRate.set((playlistsFailedCounter.count() / (playlistsFailedCounter.count() + playlistsSuccessfulCounter.count())) * 100.0);
+        playlistErrorRate.set((playlistsErrorCounter.count() / (playlistsErrorCounter.count() + playlistsSuccessfulCounter.count())) * 100.0);
     }
 
     public boolean isPlaylistRequest(String url){
