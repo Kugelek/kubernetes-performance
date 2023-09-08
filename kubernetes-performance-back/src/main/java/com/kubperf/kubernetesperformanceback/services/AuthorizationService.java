@@ -36,7 +36,7 @@ public class AuthorizationService {
         String url = API_PREFIX + "authorize";
 
         String urlTemplate = UriComponentsBuilder.fromHttpUrl(url)
-                .queryParam("client_id", "32f3fa6fa3f54efcae8193f8d7da82c9")
+                .queryParam("client_id", "e090152b7ea94eb68f9656bb87b32e6e")
                 .queryParam("response_type", "code")
                 .queryParam("redirect_uri","http://127.0.0.1:8080/login").build().toUriString();
 

@@ -2,7 +2,7 @@ package com.kubperf.kubernetesperformanceback.controllers;
 
 import com.kubperf.kubernetesperformanceback.services.SpotifyService;
 
-import net.minidev.json.JSONObject;
+import com.google.gson.JsonObject;
 
 
 import org.slf4j.Logger;
@@ -24,31 +24,31 @@ public class SpotifyController {
         final static Logger logger = LoggerFactory.getLogger(SpotifyController.class);
 
         @GetMapping("/playlists")
-        public JSONObject fetchPlaylists() {
+        public JsonObject fetchPlaylists() {
             return spotifyService.fetchPlaylists();
         }
 
         @GetMapping("/artist/albums")
-        public JSONObject fetchArtistAlbums() {
+        public JsonObject fetchArtistAlbums() {
                 return spotifyService.fetchArtistAlbums();
         }
 
         @GetMapping("/album/tracks")
-        public JSONObject fetchAlbumTracks() {
+        public JsonObject fetchAlbumTracks() {
                 return spotifyService.fetchAlbumTracks();
         }
 
         @GetMapping("/fetchPlaylists")
-        public JSONObject fetchOrSavePlaylists() {
+        public JsonObject fetchOrSavePlaylists() {
                 logger.warn("Playlist fetched");
                 return spotifyService.fetchOrSavePlaylists();
         }
         @GetMapping("/fetchPlaylistsInvalid")
-        public JSONObject fetchOrSavePlaylistsInvalid() {
+        public JsonObject fetchOrSavePlaylistsInvalid() {
                 return spotifyService.fetchPlaylistsInvalid();
         }
         @GetMapping("/fetchPlaylistsNoDelay")
-        public JSONObject fetchOrSavePlaylistsNoDelay() {
+        public JsonObject fetchOrSavePlaylistsNoDelay() {
                 return spotifyService.fetchOrSavePlaylistsNoDelay();
         }
 }

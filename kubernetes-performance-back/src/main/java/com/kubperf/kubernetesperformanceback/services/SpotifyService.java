@@ -1,5 +1,7 @@
 package com.kubperf.kubernetesperformanceback.services;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.kubperf.kubernetesperformanceback.models.User;
 import com.sun.management.OperatingSystemMXBean;
 import io.micrometer.core.instrument.Counter;
@@ -44,7 +46,7 @@ public class SpotifyService {
     @Autowired
     public User user;
 
-    JSONObject tempPlaylists;
+    JsonObject tempPlaylists;
 
     private static final String API_PREFIX = "https://api.spotify.com/v1/";
     private static final String USER_ID = "21h3z55pecogcrafiq3bvnady";
@@ -75,9 +77,9 @@ public class SpotifyService {
         this.restTemplate = restTemplateBuilder.build();
     }
 
-    public JSONObject makeRequest(String url) {
+    public JsonObject makeRequest(String url) {
 
-        ResponseEntity<JSONObject> response = null;
+        ResponseEntity<JsonObject> response = null;
         long startTime = System.nanoTime();
             //create headers
             HttpHeaders headers = new HttpHeaders();
@@ -88,11 +90,18 @@ public class SpotifyService {
                     .build().toUriString();
         try {
             HttpEntity<?> request = new HttpEntity<Object>(null, headers);
-            response = restTemplate.exchange(urlTemplate, HttpMethod.GET, request, JSONObject.class);
-            int responseSize = Objects.requireNonNull(response.getBody()).toString().getBytes().length;
+            response = restTemplate.exchange(urlTemplate, HttpMethod.GET, request, JsonObject.class);
+            if(response.hasBody())
+                logger.info(response.getBody().toString());
+            else
+                logger.info("NO body");
+
+            JsonObject responseBody = (url.contains("albums") && response.hasBody()) ? trimResponse(response) : response.getBody();
+
+            int responseSize = responseBody.toString().getBytes().length;
+
             responseSizesHistogram.record(responseSize);
             responseSizesSummary.record(responseSize);
-
 
             if(isPlaylistRequest(url)) {
                 playlistsSuccessfulCounter.increment();
@@ -100,7 +109,7 @@ public class SpotifyService {
             logger.info(String.format("Request %s is successful", url));
             updateGauge();
 
-            return response.getBody();
+            return responseBody;
 
         } catch (Exception e) {
             responseSizesHistogram.record(e.toString().getBytes().length);
@@ -112,10 +121,10 @@ public class SpotifyService {
             throw e;
         }
     }
-    public JSONObject makeUnauthorizedRequest(String url) {
+    public JsonObject makeUnauthorizedRequest(String url) {
 
         //create headers
-        ResponseEntity<JSONObject> response = null;
+        ResponseEntity<JsonObject> response = null;
         try {
             HttpHeaders headers = new HttpHeaders();
             String urlTemplate = UriComponentsBuilder
@@ -123,8 +132,7 @@ public class SpotifyService {
                     .build().toUriString();
 
             HttpEntity<?> request = new HttpEntity<Object>(null, headers);
-            response = restTemplate.exchange(urlTemplate, HttpMethod.GET, request, JSONObject.class);
-
+            response = restTemplate.exchange(urlTemplate, HttpMethod.GET, request, JsonObject.class);
             responseSizesHistogram.record(response.getBody().toString().getBytes().length);
             responseSizesSummary.record(response.getBody().toString().getBytes().length);
 
@@ -147,30 +155,30 @@ public class SpotifyService {
     }
 
 
-    public JSONObject fetchPlaylists() {
+    public JsonObject fetchPlaylists() {
         String url = API_PREFIX + "users/" + USER_ID + "/playlists";
         logger.info("request fetchPlaylists (GET) started");
         return makeRequest(url);
     }
-    public JSONObject fetchPlaylistsInvalid() {
+    public JsonObject fetchPlaylistsInvalid() {
         String url = API_PREFIX + "users/" + USER_ID + "/playlists";
         logger.info("request fetchPlaylistsInvalid (GET) started");
         return makeUnauthorizedRequest(url);
     }
 
-    public JSONObject fetchArtistAlbums() {
+    public JsonObject fetchArtistAlbums() {
         String url = API_PREFIX + "artists/" + ARTIST + "/albums";
         logger.info("request fetchArtistAlbums (GET) started");
         return makeRequest(url);
     }
 
-    public JSONObject fetchAlbumTracks() {
+    public JsonObject fetchAlbumTracks() {
         String url = API_PREFIX + "albums/" + ALBUM + "/tracks";
         logger.info("request fetchAlbumTracks (GET) started");
         return makeRequest(url);
     }
 
-    public JSONObject fetchOrSavePlaylists() {
+    public JsonObject fetchOrSavePlaylists() {
         if(tempPlaylists != null){
             simulateComplexComputation();
             System.out.println("@@@@@@@@@@@");
@@ -182,7 +190,7 @@ public class SpotifyService {
             return this.tempPlaylists;
         }
     }
-    public JSONObject fetchOrSavePlaylistsNoDelay() {
+    public JsonObject fetchOrSavePlaylistsNoDelay() {
         if(tempPlaylists != null){
             responseSizesHistogram.record(tempPlaylists.toString().getBytes().length / 1000.0);
             return tempPlaylists;
@@ -222,5 +230,27 @@ public class SpotifyService {
 
     public boolean isPlaylistRequest(String url){
         return url.contains("playlists");
+    }
+
+    public JsonObject trimResponse(ResponseEntity<JsonObject> response) {
+        JsonArray items = new JsonArray();
+        logger.info(response.getBody().toString());
+        JsonArray responseItems = ((JsonArray) response.getBody().get("items"));
+        for(int i=0; i < responseItems.size(); i++){
+            JsonObject item = (JsonObject) responseItems.get(i);
+            item.remove("available_markets");
+            items.add(item);
+        }
+
+        JsonObject trimmedResponse = new JsonObject();
+
+        trimmedResponse.add("next", response.getBody().get("next"));
+        trimmedResponse.add("total", response.getBody().get("total"));
+        trimmedResponse.add("offset", response.getBody().get("offset"));
+        trimmedResponse.add("previous", response.getBody().get("previous"));
+        trimmedResponse.add("limit", response.getBody().get("limit"));
+        trimmedResponse.add("href", response.getBody().get("href"));
+        trimmedResponse.add("items", items);
+        return trimmedResponse;
     }
 }

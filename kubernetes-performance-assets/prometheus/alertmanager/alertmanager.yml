@@ -1,0 +1,11 @@
+route:
+  receiver: 'gmail-receiver'
+receivers:
+- name: gmail-receiver
+  email_configs:
+  - to: wolak.t.23@gmail.com
+    from: wolak.t.23@gmail.com
+    smarthost: smtp.gmail.com:587
+    auth_username: wolak.t.23@gmail.com
+    auth_identity: wolak.t.23@gmail.com
+    auth_password: wweldetaahvyjdad

@@ -1,0 +1,10 @@
+groups:
+  - name: spring-boot
+    rules:
+      - alert: HighPlaylistErrorRate
+        expr: ((playlists_requests_total{result="error"} / on() group_right() sum(playlists_requests_total)) * 100) > 10
+        for: 1m
+        labels:
+          severity: high
+        annotations:
+          summary: Playlists error rate is too high
